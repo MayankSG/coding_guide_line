@@ -565,16 +565,6 @@ User.where("id != ?", id)
 User.where.not(id: id)
 ```
 
-**5.** Don't use the `id` column for ordering.
-
-```ruby
-# ok
-scope :chronological, -> { order(id: :asc) }
-
-# preferred way
-scope :chronological, -> { order(created_at: :asc) }
-```
-
 ## Migrations
 
 **1.** Keep the `schema.rb` (or `structure.sql`) under version control(git).
@@ -742,10 +732,21 @@ default from: 'sender Name <info@your_site.com>',
 **6.** When sending html emails all styles should be inline, as some mail clients have problems with external styles.
 
 **7.** When sending emails use background jobs to send email.
-Emails can be sent in background process with the help of  sidekiq gem
+Emails can be sent in background process with the help of  sidekiq gem.
 
 ```ruby
+#good
+class ContactJob < ApplicationJob
+  queue_as :default
 
+  def perform(message)
+    ContactMailer.submission(message).deliver
+  end
+end
+
+  def create
+    ContactJob.perform_later params.permit(:message)[:message]
+  end
 ```
 
 ## Bundler
